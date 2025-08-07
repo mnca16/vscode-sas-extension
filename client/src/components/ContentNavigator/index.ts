@@ -489,7 +489,7 @@ Steps:
   }
 
   private treeViewSelections(item: ContentItem): ContentItem[] {
-    console.info("This is the selection in context menu");
+    console.info("This is the selection in context menuu");
     const items =
       this.contentDataProvider.treeView.selection.length > 1 || !item
         ? this.contentDataProvider.treeView.selection
