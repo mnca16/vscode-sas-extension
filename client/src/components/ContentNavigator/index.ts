@@ -95,23 +95,44 @@ class ContentNavigator implements SubscriptionProvider {
 
   public getSubscriptions(): Disposable[] {
     const SAS = `SAS.${this.sourceType === ContentSourceType.SASContent ? "content" : "server"}`;
+    /*
+                deteleResult ?
+                t1: catch
+                t2: deletion confirmation
+                t3: soft delete or catch duplicate
+
+                edge case: check if SAS Studio allows deleting folders and files at the same time
+                */
     return [
       ...this.contentDataProvider.getSubscriptions(),
       commands.registerCommand(
         `${SAS}.deleteResource`,
         async (item: ContentItem) => {
+          console.info("item", item);
           this.treeViewSelections(item).forEach(
             async (resource: ContentItem) => {
-              const isContainer = getIsContainer(resource);
+              const isContainer = getIsContainer(resource); // checks for directory
               const moveToRecycleBin =
                 this.contentDataProvider.canRecycleResource(resource);
+              /*
+Approach:
 
+Objective:
+Show warning message handler with an if statement to check if we have one or multiple items selected.
+If we have multiple items selected, we show a general message and if it's a single item, we keep how
+it is now.
+
+Steps:
+
+
+
+*/
               if (resource.contextValue.includes("delete")) {
                 if (
                   !moveToRecycleBin &&
                   !(await window.showWarningMessage(
                     l10n.t(Messages.DeleteWarningMessage, {
-                      name: resource.name,
+                      name: "deleting file",
                     }),
                     { modal: true },
                     Messages.DeleteButtonLabel,
@@ -119,6 +140,7 @@ class ContentNavigator implements SubscriptionProvider {
                 ) {
                   return;
                 }
+
                 const deleteResult = moveToRecycleBin
                   ? await this.contentDataProvider.recycleResource(resource)
                   : await this.contentDataProvider.deleteResource(resource);
@@ -467,6 +489,7 @@ class ContentNavigator implements SubscriptionProvider {
   }
 
   private treeViewSelections(item: ContentItem): ContentItem[] {
+    console.info("This is the selection in context menu");
     const items =
       this.contentDataProvider.treeView.selection.length > 1 || !item
         ? this.contentDataProvider.treeView.selection
